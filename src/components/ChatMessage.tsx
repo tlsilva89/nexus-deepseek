@@ -1,4 +1,10 @@
+import { useCallback } from "react";
 import { PaperClipIcon } from "@heroicons/react/24/outline";
+import ReactMarkdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { materialDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import remarkGfm from "remark-gfm";
+import { MySwal } from "../utils/sweetAlertConfig";
 
 interface ChatMessageProps {
   message: {
@@ -10,6 +16,19 @@ interface ChatMessageProps {
 }
 
 export default function ChatMessage({ message }: ChatMessageProps) {
+  const handleCopyCode = useCallback((code: string) => {
+    navigator.clipboard.writeText(code).then(() => {
+      MySwal.fire({
+        icon: "success",
+        title: "Código copiado!",
+        showConfirmButton: false,
+        timer: 2000,
+        background: "#1a1b26",
+        color: "#a9b4d2",
+      });
+    });
+  }, []);
+
   return (
     <div
       className={`flex ${
@@ -36,9 +55,82 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             ))}
           </div>
         )}
-        <pre className="whitespace-pre-wrap font-main text-gray-100">
+
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code({ inline, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || "");
+              const code = String(children).replace(/\n$/, "");
+
+              return !inline && match ? (
+                <div className="relative group">
+                  <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleCopyCode(code)}
+                      className="bg-neon-purple/80 hover:bg-neon-purple text-white px-3 py-1 rounded text-sm"
+                    >
+                      Copiar
+                    </button>
+                  </div>
+                  <SyntaxHighlighter
+                    style={materialDark}
+                    language={match[1]}
+                    PreTag="div"
+                    {...props}
+                  >
+                    {code}
+                  </SyntaxHighlighter>
+                </div>
+              ) : (
+                <code
+                  className="bg-gray-800 px-2 py-1 rounded text-sm"
+                  {...props}
+                >
+                  {children}
+                </code>
+              );
+            },
+            h1: (props) => (
+              <h1
+                className="text-2xl font-bold mb-4 text-neon-blue"
+                {...props}
+              />
+            ),
+            h2: (props) => (
+              <h2
+                className="text-xl font-semibold mb-3 text-neon-purple"
+                {...props}
+              />
+            ),
+            h3: (props) => (
+              <h3
+                className="text-lg font-medium mb-2 text-neon-green"
+                {...props}
+              />
+            ),
+            a: (props) => (
+              <a
+                className="text-neon-blue underline hover:text-neon-purple"
+                target="_blank"
+                rel="noopener noreferrer"
+                {...props}
+              />
+            ),
+            ul: (props) => <ul className="list-disc pl-6 mb-4" {...props} />,
+            ol: (props) => <ol className="list-decimal pl-6 mb-4" {...props} />,
+            blockquote: (props) => (
+              <blockquote
+                className="border-l-4 border-neon-purple pl-4 my-4 text-gray-300"
+                {...props}
+              />
+            ),
+          }}
+          className="prose prose-invert max-w-none"
+        >
           {message.text}
-        </pre>
+        </ReactMarkdown>
+
         <div className="mt-2 text-xs text-gray-400 text-right">
           {new Date(message.timestamp).toLocaleTimeString([], {
             hour: "2-digit",
