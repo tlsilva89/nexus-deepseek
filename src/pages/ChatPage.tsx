@@ -6,6 +6,7 @@ import {
 import { MySwal } from "../utils/sweetAlertConfig";
 import ChatMessage from "../components/ChatMessage";
 import FileUpload from "../components/FileUpload";
+import { generateResponse } from "../api/ollama";
 
 interface ChatMessageType {
   text: string;
@@ -18,205 +19,121 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Efeito para rolagem automática
+  // Efeito para scroll automático
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
   }, [messages]);
 
-  // Ajusta altura do textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [input]);
-
   const handleSend = async () => {
-    if (!input.trim() && files.length === 0) return;
-
-    // Mensagem do usuário
-    const userMessage: ChatMessageType = {
-      text: input,
-      isUser: true,
-      timestamp: new Date().toISOString(),
-      files: [...files],
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setFiles([]);
+    if ((!input.trim() && files.length === 0) || isLoading) return;
 
     try {
-      // Mensagem do assistente (placeholder)
-      let assistantMessage: ChatMessageType = {
-        text: "",
-        isUser: false,
-        timestamp: new Date().toISOString(),
-        files: [],
-      };
+      // Construir prompt com conteúdo dos arquivos
+      const fileContents = await Promise.all(
+        files.map(async (file) => {
+          try {
+            return `\n[Arquivo: ${file.name}]\n${await file.text()}`;
+          } catch (error) {
+            console.error("Erro na leitura do arquivo:", error);
+            return `\n[Erro: Não foi possível ler o arquivo ${file.name}]`;
+          }
+        })
+      );
 
-      // Simulação de resposta assíncrona
-      setMessages((prev) => [...prev, assistantMessage]);
+      const fullPrompt = [
+        input,
+        ...(fileContents.length > 0
+          ? ["\n\nDocumentos anexados:", ...fileContents]
+          : []),
+      ].join("\n");
 
-      // Requisição para API do Ollama
-      const response = await fetch("http://localhost:11434/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "deepseek-r1:8b",
-          prompt: input,
-          files: files.map((f) => f.name),
-        }),
+      // Adicionar mensagem do usuário
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: input,
+          isUser: true,
+          timestamp: new Date().toISOString(),
+          files: [...files],
+        },
+      ]);
+
+      // Resetar estado
+      setInput("");
+      setFiles([]);
+      setIsLoading(true);
+
+      // Obter resposta da IA
+      const response = await generateResponse({
+        model: "deepseek-r1:8b",
+        prompt: fullPrompt,
+        stream: false,
       });
 
-      if (!response.body) throw new Error("Erro na conexão com o servidor");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        assistantMessage = {
-          ...assistantMessage,
-          text: assistantMessage.text + chunk,
-        };
-
-        // Atualização otimizada do estado
-        setMessages((prev) => {
-          const lastMessage = prev[prev.length - 1];
-          return lastMessage.isUser
-            ? [...prev.slice(0, -1), assistantMessage]
-            : [...prev.slice(0, -1), { ...assistantMessage }];
-        });
-      }
+      // Adicionar resposta da IA
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: response.response,
+          isUser: false,
+          timestamp: new Date().toISOString(),
+          files: [],
+        },
+      ]);
     } catch (error) {
-      setMessages((prev) => prev.slice(0, -1)); // Remove mensagem de carregamento
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro desconhecido";
+
+      console.error("Erro na comunicação com a IA:", error);
       MySwal.fire({
         icon: "error",
-        title: "Erro na conexão",
-        text: error instanceof Error ? error.message : "Erro desconhecido",
-        background: "#0a0a0f",
-        color: "#e5e7eb",
+        title: "Falha na geração de resposta",
+        html: `
+          <div class="text-left">
+            <p class="text-red-300">${errorMessage}</p>
+            <ul class="list-disc pl-6 mt-4">
+              <li>Verifique a conexão com o servidor Ollama</li>
+              <li>Confira se o modelo está instalado</li>
+              <li>Tente novamente mais tarde</li>
+            </ul>
+          </div>
+        `,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleExport = async () => {
-    const { value: fileName } = await MySwal.fire({
-      title: <span className="text-neon-purple">Exportar Conversa</span>,
-      html: (
-        <input
-          type="text"
-          className="mt-1 w-full bg-dark-surface text-gray-200 rounded p-2 border border-neon-purple focus:outline-none focus:ring-2 focus:ring-neon-blue"
-          placeholder="Nome do arquivo"
-          autoFocus
-        />
-      ),
-      showCancelButton: true,
-      confirmButtonText: "Exportar",
-      cancelButtonText: "Cancelar",
-      background: "#0a0a0f",
-      preConfirm: () => {
-        const input = document.querySelector(
-          ".swal2-input"
-        ) as HTMLInputElement;
-        return (
-          input?.value || `conversa-${new Date().toISOString().slice(0, 10)}`
-        );
-      },
+  const handleExport = () => {
+    MySwal.fire({
+      icon: "info",
+      title: "Exportação de conversas",
+      text: "Funcionalidade em desenvolvimento!",
     });
-
-    if (fileName) {
-      const data = {
-        messages,
-        metadata: {
-          exportedAt: new Date().toISOString(),
-          model: "deepseek-r1:8b",
-        },
-      };
-
-      // Cria e dispara download
-      const blob = new Blob([JSON.stringify(data, null, 2)], {
-        type: "application/json",
-      });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${fileName}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-
-      MySwal.fire({
-        icon: "success",
-        title: "Exportação concluída!",
-        html: `<div class="text-gray-300">Arquivo: <span class="text-neon-blue">${fileName}.json</span></div>`,
-        background: "#0a0a0f",
-      });
-    }
   };
 
-  const handleImport = async () => {
-    const { value: file } = await MySwal.fire({
-      title: <span className="text-neon-blue">Importar Conversa</span>,
-      html: (
-        <input
-          type="file"
-          className="mt-1 w-full bg-dark-surface text-gray-200 rounded p-2 border border-neon-blue focus:outline-none focus:ring-2 focus:ring-neon-purple"
-          accept=".json"
-        />
-      ),
-      showCancelButton: true,
-      confirmButtonText: "Importar",
-      cancelButtonText: "Cancelar",
-      background: "#0a0a0f",
-      preConfirm: () => {
-        const input = document.querySelector(".swal2-file") as HTMLInputElement;
-        return input?.files?.[0];
-      },
+  const handleImport = () => {
+    MySwal.fire({
+      icon: "info",
+      title: "Importação de conversas",
+      text: "Funcionalidade em desenvolvimento!",
     });
-
-    if (file) {
-      try {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const data = JSON.parse(e.target?.result as string);
-          if (data.messages && Array.isArray(data.messages)) {
-            setMessages(data.messages);
-            MySwal.fire({
-              icon: "success",
-              title: "Importação concluída!",
-              timer: 2000,
-              background: "#0a0a0f",
-              showConfirmButton: false,
-            });
-          } else {
-            throw new Error("Formato de arquivo inválido");
-          }
-        };
-        reader.readAsText(file);
-      } catch (error) {
-        MySwal.fire({
-          icon: "error",
-          title: "Erro na importação",
-          text: error instanceof Error ? error.message : "Arquivo corrompido",
-          background: "#0a0a0f",
-        });
-      }
-    }
   };
 
   return (
     <div className="min-h-screen bg-dark-bg text-gray-200 font-main flex flex-col">
       {/* Cabeçalho */}
-      <nav className="bg-dark-surface p-4 flex justify-between items-center sticky top-0 z-50 shadow-lg">
+      <nav className="bg-dark-surface p-4 flex justify-between items-center sticky top-0 z-50 shadow-xl border-b border-neon-purple/20">
         <h1 className="text-2xl font-tech text-neon-purple tracking-wider">
-          Nexus DeepSeek
+          <span className="text-neon-blue">Nexus</span> DeepSeek
         </h1>
 
         <div className="flex gap-6">
@@ -241,57 +158,53 @@ export default function ChatPage() {
       </nav>
 
       {/* Área de mensagens */}
-      <main className="flex-1 container mx-auto px-4 py-6 max-w-5xl overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto mb-6 scrollbar-thin scrollbar-thumb-neon-purple scrollbar-track-dark-surface">
+      <main className="flex-1 container mx-auto px-4 py-6 max-w-5xl flex flex-col">
+        <div className="flex-1 overflow-y-auto mb-6 scrollbar-thin scrollbar-thumb-neon-purple/50 scrollbar-track-dark-surface/30">
           {messages.map((message, index) => (
             <ChatMessage
-              key={`msg-${index}-${message.timestamp}`}
+              key={`${message.timestamp}-${index}`}
               message={message}
             />
           ))}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Área de input */}
-        <div className="border-2 border-neon-purple/30 rounded-xl bg-dark-surface p-4 shadow-xl">
+        {/* Área de entrada */}
+        <div className="border-2 border-neon-purple/30 rounded-xl bg-dark-surface/95 p-4 shadow-2xl backdrop-blur-sm">
           <FileUpload files={files} setFiles={setFiles} />
 
           <div className="relative">
             <textarea
-              ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Digite sua consulta..."
-              className="w-full bg-transparent resize-none outline-none placeholder-gray-400 pr-16"
-              rows={1}
+              placeholder="Digite sua consulta ou instrução..."
+              className="w-full bg-transparent resize-none outline-none placeholder-gray-400/70 pr-20 focus:ring-2 focus:ring-neon-blue rounded-lg p-3"
+              rows={3}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey && !isLoading) {
                   e.preventDefault();
                   handleSend();
                 }
               }}
+              disabled={isLoading}
             />
 
             <button
               onClick={handleSend}
-              disabled={!input.trim() && files.length === 0}
-              className="absolute bottom-2 right-2 bg-neon-purple hover:bg-neon-blue disabled:opacity-50 disabled:cursor-not-allowed text-white p-2 rounded-lg transition-all"
-              aria-label="Enviar mensagem"
+              disabled={isLoading}
+              className="absolute bottom-3 right-3 bg-gradient-to-r from-neon-purple to-neon-blue hover:from-neon-blue hover:to-neon-purple disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 px-6 rounded-full transition-all duration-300 shadow-lg shadow-neon-purple/20"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                />
-              </svg>
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <span className="animate-pulse">Processando</span>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-white"></div>
+                </div>
+              ) : (
+                <>
+                  Enviar
+                  <span className="ml-2 opacity-70 text-sm">⏎</span>
+                </>
+              )}
             </button>
           </div>
         </div>
