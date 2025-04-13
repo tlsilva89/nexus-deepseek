@@ -1,6 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import tailwindcss from "tailwindcss";
+import autoprefixer from "autoprefixer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,8 +13,28 @@ export default defineConfig({
     open: true, // Abre o navegador automaticamente
     strictPort: true, // Fecha se a porta estiver ocupada
     proxy: {
+      "/api/generate": {
+        target: "http://localhost:11434/api/generate",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api\/generate/, ""),
+        configure: (proxy) => {
+          proxy.on("error", (err) => {
+            console.error("Proxy error:", err);
+          });
+          // Usando underscore para indicar parâmetros não utilizados
+          proxy.on("proxyReq", (_proxyReq, req) => {
+            console.log(`Proxying request to: ${req.url}`);
+          });
+          proxy.on("proxyRes", (proxyRes) => {
+            console.log(
+              `Received response from Ollama: ${proxyRes.statusCode}`
+            );
+          });
+        },
+      },
       "/api": {
-        target: "http://localhost:11434", // Servidor Ollama
+        target: "http://localhost:11434",
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ""),
@@ -32,15 +54,45 @@ export default defineConfig({
       "@assets": path.resolve(__dirname, "./src/assets"),
       "@hooks": path.resolve(__dirname, "./src/hooks"),
       "@utils": path.resolve(__dirname, "./src/utils"),
+      "@api": path.resolve(__dirname, "./src/api"),
+      "@types": path.resolve(__dirname, "./src/types"),
     },
   },
   optimizeDeps: {
-    include: ["@heroicons/react/24/outline"], // Pré-empacota ícones
+    include: [
+      "@heroicons/react/24/outline",
+      "sweetalert2",
+      "sweetalert2-react-content",
+    ], // Pré-empacota dependências importantes
     exclude: ["@types/node"], // Evita conflitos
   },
   build: {
+    outDir: "dist",
+    sourcemap: process.env.NODE_ENV !== "production",
     commonjsOptions: {
       include: [/node_modules/], // Melhora compatibilidade
     },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          ui: [
+            "@heroicons/react/24/outline",
+            "sweetalert2",
+            "sweetalert2-react-content",
+          ],
+        },
+      },
+    },
+  },
+  css: {
+    devSourcemap: true,
+    postcss: {
+      plugins: [tailwindcss, autoprefixer],
+    },
+  },
+  esbuild: {
+    jsxInject: `import React from 'react'`,
+    logOverride: { "this-is-undefined-in-esm": "silent" },
   },
 });
