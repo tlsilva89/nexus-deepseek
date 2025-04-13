@@ -35,9 +35,11 @@ export default function FileUpload({ files, setFiles }: FileUploadProps) {
         {files.map((file, index) => (
           <div
             key={index}
-            className="flex items-center bg-dark-surface px-3 py-1.5 rounded-lg border border-neon-purple/30"
+            className="flex items-center bg-dark-surface px-3 py-1.5 rounded-lg border border-dark-border"
           >
-            <span className="text-sm text-gray-300">{file.name}</span>
+            <span className="text-sm text-gray-300 truncate max-w-[200px]">
+              {file.name}
+            </span>
             <button
               onClick={() => removeFile(index)}
               className="ml-2 p-1 hover:bg-dark-bg rounded-full"

@@ -36,7 +36,9 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             ))}
           </div>
         )}
-        <p className="whitespace-pre-wrap text-gray-100">{message.text}</p>
+        <pre className="whitespace-pre-wrap font-main text-gray-100">
+          {message.text}
+        </pre>
         <div className="mt-2 text-xs text-gray-400 text-right">
           {new Date(message.timestamp).toLocaleTimeString([], {
             hour: "2-digit",
