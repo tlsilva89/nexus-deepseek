@@ -1,8 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import tailwindcss from "tailwindcss";
-import autoprefixer from "autoprefixer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -22,7 +20,6 @@ export default defineConfig({
           proxy.on("error", (err) => {
             console.error("Proxy error:", err);
           });
-          // Usando underscore para indicar parâmetros não utilizados
           proxy.on("proxyReq", (_proxyReq, req) => {
             console.log(`Proxying request to: ${req.url}`);
           });
@@ -87,9 +84,7 @@ export default defineConfig({
   },
   css: {
     devSourcemap: true,
-    postcss: {
-      plugins: [tailwindcss, autoprefixer],
-    },
+    postcss: "./postcss.config.mjs",
   },
   esbuild: {
     jsxInject: `import React from 'react'`,
