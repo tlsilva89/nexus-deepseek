@@ -1,73 +1,21 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    /* Configurações específicas para o build da aplicação */
     "composite": true,
     "tsBuildInfoFile": "./node_modules/.cache/tsconfig.app.tsbuildinfo",
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": ".",
     "sourceMap": true,
-    "inlineSources": true,
     "declaration": true,
     "declarationMap": true,
-
-    /* Configurações de módulo otimizadas para produção */
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "allowImportingTsExtensions": false,
-
-    /* Tipos globais específicos para o ambiente de produção */
-    "types": [
-      "vite/client",
-      "node",
-      "@types/react",
-      "@types/react-dom",
-      "@types/react-router-dom"
-    ],
-
-    /* Otimizações para o React 19 */
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "emitDecoratorMetadata": false,
-    "useDefineForClassFields": true,
-
-    /* Configurações de paths específicas para o build */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@components/*": ["src/components/*"],
-      "@pages/*": ["src/pages/*"],
-      "@assets/*": ["src/assets/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@utils/*": ["src/utils/*"]
-    }
+    "emitDeclarationOnly": true,
+    "isolatedModules": true
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.css",
-    "src/**/*.scss",
+    "src/**/*",
     "index.html",
     "vite.config.ts",
     "postcss.config.js",
-    "tailwind.config.js",
-    "src/vite-env.d.ts"
+    "tailwind.config.js"
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/__tests__/*",
-    "**/*.spec.ts",
-    "**/*.test.tsx",
-    "**/*.stories.tsx",
-    "**/__mocks__/*",
-    "**/cypress/*",
-    "**/.eslintrc.*",
-    "**/.storybook/*"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
+  "exclude": ["**/__tests__", "**/*.test.ts", "**/*.spec.ts"]
 }

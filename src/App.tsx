@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ChatPage from "./pages/ChatPage.tsx";
-import SetupGuide from "./pages/SetupGuide.tsx";
+import ChatPage from "./pages/ChatPage"; // Remova a extensão .tsx
+import SetupGuide from "./pages/SetupGuide"; // Remova a extensão .tsx
 
 export default function App() {
   return (
@@ -9,7 +9,6 @@ export default function App() {
         <Route path="/" element={<ChatPage />} />
         <Route path="/setup" element={<SetupGuide />} />
 
-        {/* Rota para página não encontrada */}
         <Route
           path="*"
           element={

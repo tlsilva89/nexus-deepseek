@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    /* Configurações Básicas */
     "target": "ES2022",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
@@ -10,11 +9,9 @@
     "strict": true,
     "baseUrl": ".",
 
-    /* Sistema de Tipos */
-    "types": ["vite/client", "node", "@types/react", "@types/react-dom"],
+    "types": ["vite/client"],
     "typeRoots": ["./node_modules/@types", "./src/types"],
 
-    /* Caminhos e Módulos */
     "paths": {
       "@/*": ["./src/*"],
       "@components/*": ["./src/components/*"],
@@ -22,61 +19,24 @@
       "@assets/*": ["./src/assets/*"],
       "@utils/*": ["./src/utils/*"]
     },
-    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
 
-    /* Verificações de Código */
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": true,
     "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
 
-    /* Saída e Mapeamento */
     "sourceMap": true,
-    "inlineSources": true,
     "outDir": "./dist",
-    "removeComments": false,
-    "noEmit": false,
+    "noEmit": true,
 
-    /* JSX Avançado */
-    "jsxImportSource": "@emotion/react",
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "jsxImportSource": "react"
   },
 
-  /* Incluir/Excluir Arquivos */
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "vite.config.ts",
-    "postcss.config.js",
-    "tailwind.config.js",
-    "src/**/*.d.ts",
-    "index.html"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.spec.ts",
-    "**/*.test.ts",
-    "**/__tests__",
-    "**/__mocks__",
-    "**/*.stories.tsx"
-  ],
-
-  /* Referências para Builds Compostos */
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "vite.config.ts", "index.html"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
 }
