@@ -74,7 +74,12 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                     </button>
                   </div>
                   <SyntaxHighlighter
-                    style={materialDark}
+                    style={
+                      materialDark as unknown as Record<
+                        string,
+                        React.CSSProperties
+                      >
+                    }
                     language={match[1]}
                     PreTag="div"
                     {...props}
@@ -91,39 +96,54 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                 </code>
               );
             },
-            h1: (props) => (
-              <h1
-                className="text-2xl font-bold mb-4 text-neon-blue"
-                {...props}
-              />
+            h1: ({ children, ...props }) => (
+              <h1 className="text-2xl font-bold mb-4 text-neon-blue" {...props}>
+                {children}
+              </h1>
             ),
-            h2: (props) => (
+            h2: ({ children, ...props }) => (
               <h2
                 className="text-xl font-semibold mb-3 text-neon-purple"
                 {...props}
-              />
+              >
+                {children}
+              </h2>
             ),
-            h3: (props) => (
+            h3: ({ children, ...props }) => (
               <h3
                 className="text-lg font-medium mb-2 text-neon-green"
                 {...props}
-              />
+              >
+                {children}
+              </h3>
             ),
-            a: (props) => (
+            a: ({ children, ...props }) => (
               <a
                 className="text-neon-blue underline hover:text-neon-purple"
                 target="_blank"
                 rel="noopener noreferrer"
                 {...props}
-              />
+              >
+                {children}
+              </a>
             ),
-            ul: (props) => <ul className="list-disc pl-6 mb-4" {...props} />,
-            ol: (props) => <ol className="list-decimal pl-6 mb-4" {...props} />,
-            blockquote: (props) => (
+            ul: ({ children, ...props }) => (
+              <ul className="list-disc pl-6 mb-4" {...props}>
+                {children}
+              </ul>
+            ),
+            ol: ({ children, ...props }) => (
+              <ol className="list-decimal pl-6 mb-4" {...props}>
+                {children}
+              </ol>
+            ),
+            blockquote: ({ children, ...props }) => (
               <blockquote
                 className="border-l-4 border-neon-purple pl-4 my-4 text-gray-300"
                 {...props}
-              />
+              >
+                {children}
+              </blockquote>
             ),
           }}
           className="prose prose-invert max-w-none"
