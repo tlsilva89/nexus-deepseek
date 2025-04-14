@@ -74,12 +74,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                     </button>
                   </div>
                   <SyntaxHighlighter
-                    style={
-                      materialDark as unknown as Record<
-                        string,
-                        React.CSSProperties
-                      >
-                    }
+                    style={materialDark as any}
                     language={match[1]}
                     PreTag="div"
                     {...props}
