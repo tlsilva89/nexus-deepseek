@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import {
   ArrowUpTrayIcon,
   ArrowDownTrayIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import { MySwal } from "../utils/sweetAlertConfig";
 import ChatMessage from "../components/ChatMessage";
@@ -130,13 +131,24 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen bg-dark-bg text-gray-200 font-main flex flex-col">
-      {/* Cabeçalho */}
+      {/* Cabeçalho Atualizado */}
       <nav className="bg-dark-surface p-4 flex justify-between items-center sticky top-0 z-50 shadow-xl border-b border-neon-purple/20">
         <h1 className="text-2xl font-tech text-neon-purple tracking-wider">
           <span className="text-neon-blue">Nexus</span> DeepSeek
         </h1>
 
         <div className="flex gap-6">
+          {/* Link para Configurações */}
+          <a
+            href="/setup"
+            className="flex items-center gap-2 hover:text-neon-blue transition-colors group"
+            aria-label="Configurações"
+          >
+            <Cog6ToothIcon className="h-6 w-6 group-hover:animate-spin-slow" />
+            <span className="hidden md:inline">Configurações</span>
+          </a>
+
+          {/* Botão de Exportação */}
           <button
             onClick={handleExport}
             className="flex items-center gap-2 hover:text-neon-blue transition-colors group"
@@ -146,6 +158,7 @@ export default function ChatPage() {
             <span className="hidden md:inline">Exportar</span>
           </button>
 
+          {/* Botão de Importação */}
           <button
             onClick={handleImport}
             className="flex items-center gap-2 hover:text-neon-purple transition-colors group"

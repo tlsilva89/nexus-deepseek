@@ -1,14 +1,26 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import ChatPage from "./pages/ChatPage"; // Remova a extensão .tsx
-import SetupGuide from "./pages/SetupGuide"; // Remova a extensão .tsx
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import ChatPage from "./pages/ChatPage";
+import SetupGuide from "./pages/SetupGuide";
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<ChatPage />} />
+        {/* Redirecionamento da raiz para a página de setup */}
+        <Route path="/" element={<Navigate to="/setup" replace />} />
+
+        {/* Rota para o chat após configuração */}
+        <Route path="/chat" element={<ChatPage />} />
+
+        {/* Rota do guia de configuração */}
         <Route path="/setup" element={<SetupGuide />} />
 
+        {/* Página 404 personalizada */}
         <Route
           path="*"
           element={
@@ -18,7 +30,7 @@ export default function App() {
                   404 - Página não encontrada
                 </h1>
                 <a
-                  href="/"
+                  href="/chat"
                   className="text-neon-blue hover:text-neon-purple transition-colors text-lg"
                 >
                   Voltar para o chat principal
