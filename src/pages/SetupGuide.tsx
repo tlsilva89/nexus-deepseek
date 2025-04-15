@@ -216,7 +216,7 @@ export default function SetupGuide() {
                     <p>Ou faça o download manual:</p>
                   </div>
                   <a
-                    href="https://ollama.ai/download/mac"
+                    href="https://ollama.com/download/Ollama-darwin.zip"
                     className="inline-flex items-center gap-2 bg-neon-purple/20 hover:bg-neon-purple/30 
                       border border-neon-purple px-6 py-3 rounded-lg transition-all cursor-pointer 
                       hover:scale-[1.02] active:scale-95 relative z-10"
@@ -329,10 +329,13 @@ export default function SetupGuide() {
             <p className="text-neon-blue/80 flex items-center gap-2">
               Desenvolvido com
               <span className="text-neon-purple animate-pulse">❤️</span>
-              por Digital Spark
+              por{" "}
+              <a href="https://digitalspark.dev/" target="_blank">
+                Digital Spark
+              </a>
             </p>
             <a
-              href="https://github.com/seu-usuario/seu-repositorio"
+              href="https://github.com/tlsilva89/nexus-deepseek"
               className="text-neon-purple hover:text-neon-blue transition-colors flex items-center gap-2 
                 hover:scale-105"
               target="_blank"
