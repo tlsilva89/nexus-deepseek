@@ -23,7 +23,8 @@ module.exports = {
         'bounce': 'bounce 1s infinite',
         'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'neon-pulse': 'neon-pulse 1.5s ease-in-out infinite',
-        'text-gradient': 'text-gradient 3s ease infinite'
+        'text-gradient': 'text-gradient 3s ease infinite',
+        'fadeInOut': 'fadeInOut 2.5s ease-in-out'
       },
       keyframes: {
         'neon-pulse': {
@@ -43,11 +44,26 @@ module.exports = {
           '50%': {
             'background-position': '100% 50%'
           }
+        },
+        'fadeInOut': {
+          '0%, 100%': {
+            opacity: '0',
+            transform: 'translateY(10px)'
+          },
+          '10%, 90%': {
+            opacity: '1',
+            transform: 'translateY(0)'
+          }
         }
       },
       backgroundImage: {
         'neon-gradient': 'linear-gradient(45deg, #bc13fe, #00f3ff, #bc13fe)',
         'dark-mesh': 'radial-gradient(circle at center, #0a0a0f 0%, #1a1a2e 100%)'
+      },
+      userSelect: {
+        'text': 'text',
+        'auto': 'auto',
+        'none': 'none'
       }
     },
   },
@@ -70,6 +86,13 @@ module.exports = {
           '&::-webkit-scrollbar-track': {
             'background': '#1a1a2e'
           }
+        },
+        // Novas utilidades de seleção de texto
+        '.select-text': {
+          'user-select': 'text'
+        },
+        '.select-none': {
+          'user-select': 'none'
         }
       })
     }
