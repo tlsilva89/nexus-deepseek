@@ -4,7 +4,7 @@ import {
   CpuChipIcon,
   CommandLineIcon,
   CheckCircleIcon,
-  ArrowDownTrayIcon, // Nome corrigido
+  ArrowDownTrayIcon,
   BeakerIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
@@ -111,7 +111,7 @@ export default function SetupGuide() {
                 content: "Docker ou WSL2 (Windows), Terminal moderno",
               },
               {
-                icon: ArrowDownTrayIcon, // Nome corrigido
+                icon: ArrowDownTrayIcon,
                 title: "Conexão",
                 content: "Internet estável para download dos modelos",
               },
@@ -134,8 +134,7 @@ export default function SetupGuide() {
         {/* Guia de Instalação */}
         <div className="space-y-12">
           <h2 className="text-3xl font-tech text-neon-blue mb-8 flex items-center gap-3">
-            <ArrowDownTrayIcon className="h-8 w-8 text-neon-purple" />{" "}
-            {/* Nome corrigido */}
+            <ArrowDownTrayIcon className="h-8 w-8 text-neon-purple" />
             Guia de Instalação
           </h2>
 
@@ -220,12 +219,12 @@ export default function SetupGuide() {
                     href="https://ollama.ai/download/mac"
                     className="inline-flex items-center gap-2 bg-neon-purple/20 hover:bg-neon-purple/30 
                       border border-neon-purple px-6 py-3 rounded-lg transition-all cursor-pointer 
-                      hover:scale-[1.02] active:scale-95"
+                      hover:scale-[1.02] active:scale-95 relative z-10"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <ArrowDownTrayIcon className="h-5 w-5 text-neon-blue" />{" "}
-                    {/* Nome corrigido */}
+                    <ArrowDownTrayIcon className="h-5 w-5 text-neon-blue" />
                     <span>Download para macOS</span>
                   </a>
                 </div>
@@ -249,12 +248,13 @@ export default function SetupGuide() {
                     href="https://ollama.com/download/OllamaSetup.exe"
                     className="inline-flex items-center gap-2 bg-gradient-to-r from-neon-purple to-neon-blue 
                       text-white px-6 py-3 rounded-lg transition-all cursor-pointer hover:scale-[1.02] 
-                      active:scale-95 shadow-lg shadow-neon-purple/30"
+                      active:scale-95 shadow-lg shadow-neon-purple/30 relative z-10"
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    download="OllamaSetup.exe"
                   >
-                    <ArrowDownTrayIcon className="h-5 w-5" />{" "}
-                    {/* Nome corrigido */}
+                    <ArrowDownTrayIcon className="h-5 w-5" />
                     <span>Baixar para Windows</span>
                   </a>
 
