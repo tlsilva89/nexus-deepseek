@@ -22,7 +22,11 @@ Oferecer uma **interface intuitiva, acessível e funcional** para interagir com 
 
 ## 🛠️ Pré-requisitos
 
-- Ollama instalado e configurado
+- [Node.js](https://nodejs.org/) 18.x ou superior
+- [npm](https://www.npmjs.com/) 9.x ou superior
+- [Ollama](https://ollama.ai/) 0.1.x ou superior
+- Git (opcional)
+
 - Hardware recomendado:
   - CPU: 4+ núcleos (Intel/AMD)
   - RAM: 16GB+
@@ -34,3 +38,12 @@ Oferecer uma **interface intuitiva, acessível e funcional** para interagir com 
 - ⚡ Vite
 - 🎨 Tailwind CSS
 - 🔒 TypeScript
+
+## 🚀 Instalação Rápida
+
+### 1. Clonar o Repositório
+```bash
+git clone https://github.com/tlsilva89/nexus-deepseek.git
+cd nexus-deepseek
+npm install
+npm run dev
