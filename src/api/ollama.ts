@@ -1,5 +1,3 @@
-// src/api/ollama.ts
-
 export interface OllamaRequest {
   model: string;
   prompt: string;

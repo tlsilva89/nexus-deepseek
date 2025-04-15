@@ -16,14 +16,19 @@ interface ChatMessageType {
   files: File[];
 }
 
+interface ChatExport {
+  version: string;
+  messages: ChatMessageType[];
+}
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Efeito para scroll automático
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({
@@ -37,7 +42,6 @@ export default function ChatPage() {
     if ((!input.trim() && files.length === 0) || isLoading) return;
 
     try {
-      // Construir prompt com conteúdo dos arquivos
       const fileContents = await Promise.all(
         files.map(async (file) => {
           try {
@@ -56,7 +60,6 @@ export default function ChatPage() {
           : []),
       ].join("\n");
 
-      // Adicionar mensagem do usuário
       setMessages((prev) => [
         ...prev,
         {
@@ -67,19 +70,16 @@ export default function ChatPage() {
         },
       ]);
 
-      // Resetar estado
       setInput("");
       setFiles([]);
       setIsLoading(true);
 
-      // Obter resposta da IA
       const response = await generateResponse({
         model: "deepseek-r1:8b",
         prompt: fullPrompt,
         stream: false,
       });
 
-      // Adicionar resposta da IA
       setMessages((prev) => [
         ...prev,
         {
@@ -114,31 +114,132 @@ export default function ChatPage() {
   };
 
   const handleExport = () => {
-    MySwal.fire({
-      icon: "info",
-      title: "Exportação de conversas",
-      text: "Funcionalidade em desenvolvimento!",
-    });
+    try {
+      const exportData: ChatExport = {
+        version: "1.0",
+        messages: messages.map((msg) => ({
+          ...msg,
+          files: [],
+        })),
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nexus-chat-${new Date()
+        .toISOString()
+        .replace(/[:.]/g, "-")}.json`;
+      document.body.appendChild(a);
+      a.click();
+
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      MySwal.fire({
+        icon: "success",
+        title: "Conversa exportada!",
+        html: `
+          <div class="text-center">
+            <p class="text-neon-blue">${messages.length} mensagens salvas</p>
+            <p class="text-sm text-neon-purple/80 mt-2">Arquivo baixado automaticamente</p>
+          </div>
+        `,
+        timer: 3000,
+      });
+    } catch (error) {
+      MySwal.fire({
+        icon: "error",
+        title: "Erro na exportação",
+        text: "Não foi possível salvar a conversa",
+      });
+    }
   };
 
   const handleImport = () => {
-    MySwal.fire({
-      icon: "info",
-      title: "Importação de conversas",
-      text: "Funcionalidade em desenvolvimento!",
-    });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const result = e.target?.result;
+        if (typeof result === "string") {
+          const data: ChatExport = JSON.parse(result);
+
+          if (
+            !data.version ||
+            !data.messages ||
+            !Array.isArray(data.messages)
+          ) {
+            throw new Error("Formato de arquivo inválido");
+          }
+
+          setMessages(data.messages);
+          MySwal.fire({
+            icon: "success",
+            title: "Conversa importada!",
+            html: `
+              <div class="text-center">
+                <p class="text-neon-blue">${data.messages.length} mensagens carregadas</p>
+                <p class="text-sm text-neon-purple/80 mt-2">Pronto para continuar o diálogo</p>
+              </div>
+            `,
+            timer: 3000,
+          });
+        }
+      };
+      reader.onerror = () => {
+        throw new Error("Erro na leitura do arquivo");
+      };
+      reader.readAsText(file);
+    } catch (error) {
+      MySwal.fire({
+        icon: "error",
+        title: "Falha na importação",
+        html: `
+          <div class="text-left">
+            <p class="text-red-300">${
+              error instanceof Error ? error.message : "Erro desconhecido"
+            }</p>
+            <ul class="list-disc pl-6 mt-4 text-sm">
+              <li>Verifique se o arquivo é válido</li>
+              <li>Certifique-se que foi exportado desta aplicação</li>
+              <li>Tente novamente</li>
+            </ul>
+          </div>
+        `,
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-dark-bg text-gray-200 font-main flex flex-col">
-      {/* Cabeçalho Atualizado */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileImport}
+        accept=".json"
+        className="hidden"
+        aria-label="Importar conversa"
+      />
+
       <nav className="bg-dark-surface p-4 flex justify-between items-center sticky top-0 z-50 shadow-xl border-b border-neon-purple/20">
         <h1 className="text-2xl font-tech text-neon-purple tracking-wider">
           <span className="text-neon-blue">Nexus</span> DeepSeek
         </h1>
 
         <div className="flex gap-6">
-          {/* Link para Configurações */}
           <a
             href="/setup"
             className="flex items-center gap-2 hover:text-neon-blue transition-colors group"
@@ -148,7 +249,6 @@ export default function ChatPage() {
             <span className="hidden md:inline">Configurações</span>
           </a>
 
-          {/* Botão de Exportação */}
           <button
             onClick={handleExport}
             className="flex items-center gap-2 hover:text-neon-blue transition-colors group"
@@ -158,7 +258,6 @@ export default function ChatPage() {
             <span className="hidden md:inline">Exportar</span>
           </button>
 
-          {/* Botão de Importação */}
           <button
             onClick={handleImport}
             className="flex items-center gap-2 hover:text-neon-purple transition-colors group"
@@ -170,7 +269,6 @@ export default function ChatPage() {
         </div>
       </nav>
 
-      {/* Área de mensagens */}
       <main className="flex-1 container mx-auto px-4 py-6 max-w-5xl flex flex-col">
         <div className="flex-1 overflow-y-auto mb-6 scrollbar-thin scrollbar-thumb-neon-purple/50 scrollbar-track-dark-surface/30">
           {messages.map((message, index) => (
@@ -182,7 +280,6 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Área de entrada */}
         <div className="border-2 border-neon-purple/30 rounded-xl bg-dark-surface/95 p-4 shadow-2xl backdrop-blur-sm">
           <FileUpload files={files} setFiles={setFiles} />
 
